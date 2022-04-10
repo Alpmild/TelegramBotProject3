@@ -15,3 +15,10 @@ def transcription_title_into_english(name: str):
     eng_name = ''.join(map(lambda x: x.capitalize(), eng_name.split()))
 
     return eng_name
+
+
+def get_token(path: str):
+    """Получение токена"""
+    with open(path, 'r') as token_file:
+        return token_file.readline()
+

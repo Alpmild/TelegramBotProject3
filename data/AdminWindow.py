@@ -502,6 +502,9 @@ class AdminWindow(QTabWidget):
 
     def filling_data(self, tab: int):
         """Запись основной информации в базу данных"""
+        if not os.path.exists('Films'):
+            os.mkdir('Films')
+
         film_info = getattr(self, f'film_info_tab{tab}')
 
         title, country, rating, duration, image_path = \
