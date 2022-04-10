@@ -22,3 +22,7 @@ def get_token(path: str):
     with open(path, 'r') as token_file:
         return token_file.readline()
 
+
+def normalized_text(text: str):
+    """Нормализация текста, т.е. перевод в нижний регистр и удаление знаков препинания используется для поиска"""
+    return ''.join([i.lower() for i in text if i.isalpha()])
