@@ -47,7 +47,6 @@ def random_film(message):
     films = cur.execute("""SELECT DISTINCT Films.title, Films.film_id FROM Films 
         INNER JOIN Sessions ON Films.film_id = Sessions.film_id""").fetchall()
     film = sample(films, 1)
-    print(film)
     bot.send_dice(message.chat.id)
     show_film_info(message, film[0][0])
 
@@ -66,24 +65,29 @@ def avaible_films(message):
     bot.send_message(message.chat.id, text, reply_markup=markup)
 
 
+@bot.message_handler(func=lambda message: message.text == 'Заказать билеты')
+def order_ticket(message):
+    print('ok')
+
+
 @bot.message_handler(content_types='text')
 def search_films(message):
     markup = types.ReplyKeyboardMarkup(row_width=1)
     films = cur.execute("""SELECT title, duration, rating FROM Films""").fetchall()
-    result = []
+    res = []
     for info in films:
         if normalized_text(info[0]) == normalized_text(message.text):
             show_film_info(message, info[0])
             return True
         elif normalized_text(message.text) in normalized_text(info[0]):
-            result.append(info)
-    if len(result) == 0:
+            res.append(info)
+    if len(res) == 0:
         text = 'К сожалению, мы не нашли ничего подходящего'
         markup = types.ReplyKeyboardRemove()
     else:
         text = 'Вот, что мне удалось найти:\n' + \
-               "\n".join([f"{i + 1}) {films[i][0]} ({films[i][1]} минут, {films[i][2]}+)" for i in range(len(films))])
-        for film in films:
+               "\n".join([f"{i + 1}) {res[i][0]} ({res[i][1]} минут, {res[i][2]}+)" for i in range(len(res))])
+        for film in res:
             markup.add(types.KeyboardButton(film[0]))
     bot.send_message(message.chat.id, text, reply_markup=markup)
 
