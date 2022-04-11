@@ -29,9 +29,20 @@ def show_film_info(message, name):
     img = open(f'{res[7]}', 'rb')
     text = f"*{res[1]}*\nСтрана: {res[2]}\nВозрастной рейтинг: {res[3]}+\nДлительность: {res[4]} минут\n" + \
            ''.join([i for i in open(res[6]).readlines()]) + sess
+    tg_info = cur.execute(f'SELECT * FROM Telegram WHERE id = "{message.chat.id}"').fetchall()
+    if len(tg_info) == 0:
+        cur.execute(f"INSERT INTO Telegram VALUES('{message.chat.id}', '{name}', {0})")
+        db.commit()
+    else:
+        cur.execute(f"UPDATE Telegram SET film = '{name}' WHERE id = '{message.chat.id}'")
+        db.commit()
 
     bot.send_photo(message.chat.id, img)
     bot.send_message(message.chat.id, text, reply_markup=markup, parse_mode='Markdown')
+
+
+def choose_seat():
+    print('ok')
 
 
 @bot.message_handler(commands=['start'])
@@ -67,11 +78,46 @@ def avaible_films(message):
 
 @bot.message_handler(func=lambda message: message.text == 'Заказать билеты')
 def order_ticket(message):
-    print('ok')
+    info = cur.execute(f"SELECT * FROM Telegram WHERE id = '{message.chat.id}'").fetchall()
+    if len(info) == 0:
+        bot.send_message(message.chat.id, "Вы не выбрали фильм и сеанс!", reply_markup=types.ReplyKeyboardRemove())
+    else:
+        if info[0][1] is None:
+            bot.send_message(message.chat.id, "Вы не выбрали фильм!", reply_markup=types.ReplyKeyboardRemove())
+        else:
+            sessions = cur.execute("SELECT * FROM Sessions WHERE film_id = "
+                                   f"(SELECT film_id FROM Films WHERE title = '{info[0][1]}') "
+                                   "ORDER BY year, month, day, hour, minute, hall_id").fetchall()
+            if len(sessions) == 0:
+                bot.send_message(message.chat.id, "К сожалению, сейчас у нас нет доступных сеансов")
+                return
+            text = '\n'.join([f"{i + 1}) "
+                              f"{':'.join(str(j) if len(str(j)) == 2 else '0' + str(j) for j in sessions[i][5:7])}"
+                              f", {'.'.join(str(j) if len(str(j)) >= 2 else '0' + str(j) for j in sessions[i][4:1:-1])}"
+                              f" , Зал №{sessions[i][7]}" for i in range(len(sessions))])
+            bot.send_message(message.chat.id, "Выбери сеанс, написав его номер.\n" + text)
 
 
 @bot.message_handler(content_types='text')
 def search_films(message):
+    if message.text.isdigit():
+        try:
+            number = int(message.text)
+            res = cur.execute(f"SELECT * FROM Telegram WHERE id = '{message.chat.id}'").fetchall()
+            if len(res) == 0:
+                return bot.send_message(message.chat.id, "Вы не выбрали фильм, чтобы называть номер сеанса")
+            elif res[0][1] is None:
+                return bot.send_message(message.chat.id, "Вы не выбрали фильм, чтобы называть номер сеанса")
+            else:
+                sessions = cur.execute("SELECT * FROM Sessions WHERE film_id = "
+                                       f"(SELECT film_id FROM Films WHERE title = '{res[0][1]}') "
+                                       "ORDER BY year, month, day, hour, minute, hall_id").fetchall()
+                if number <= 0 or number > len(sessions):
+                    return bot.send_message(message.chat.id, "Пожалуйста, введите корректный номер")
+                return choose_seat()
+        except Exception as e:
+            return bot.send_message(message.chat.id, "Отправьте, пожалуйста, корректный номер")
+
     markup = types.ReplyKeyboardMarkup(row_width=1)
     films = cur.execute("""SELECT title, duration, rating FROM Films""").fetchall()
     res = []
