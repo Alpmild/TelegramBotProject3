@@ -79,7 +79,7 @@ FSW_GENRES_TABLE_TITLES = ["genre_id", "genre_title"]
 FSW_DIRECTORS_TABLE_TITLES = ["director_id", "name", "surname"]
 FSW_SESSIONS_TABLE_TITLES = ["session_id", "date", "time", "hall_id"]
 
-UW_FILMS_TABLE_TITLES = ["Называние", "Страна", "Жанры", "Рейтинг", "Длительность"]
+UW_FILMS_TABLE_TITLES = ["Название", "Страна", "Жанры", "Рейтинг", "Длительность"]
 
 # _________SECONDARY_________
 FILMS_TABLE_KEYS = ['film_id', 'title', 'country', 'rating', 'duration',
@@ -108,7 +108,8 @@ TRANSCRIPTION = {'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e
 
 # Telegram
 COMMANDS = {
-    'films': 'Показать полный список доступных фильмов'
+    'films': 'Показать полный список доступных фильмов',
+    'random': 'Показать случайный фильм'
 }
 
 db = sql.connect(PROJECT_DATABASE)
