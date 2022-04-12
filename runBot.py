@@ -1,64 +1,91 @@
 import telebot
 from telebot import types
-import sqlite3 as sql
-from data.Secondary_functions import get_token, normalized_text
-from data.Consts import PROJECT_DATABASE, COMMANDS
-from random import sample
 
+import sqlite3 as sql
+from random import sample
+from datetime import datetime, date
+
+from data.Secondary_functions import get_token, normalized_text
+from data.Consts import PROJECT_DATABASE, COMMANDS, FSW_FILMS_TABLE_TITLES, DATE_FORMAT
 
 db = sql.connect(PROJECT_DATABASE, check_same_thread=False)
 cur = db.cursor()
+
 token = get_token('token.txt')
 bot = telebot.TeleBot(token)
 
 
-def show_film_info(message: types.Message, name):
-    markup = types.ReplyKeyboardMarkup(row_width=1)
-    markup.add('Заказать билеты')
-    res = cur.execute(f"SELECT * FROM Films WHERE title='{name}'").fetchall()[0]
-    sessions = cur.execute("SELECT * FROM Sessions WHERE film_id = "
-                           f"(SELECT film_id FROM Films WHERE title = '{name}') "
-                           "ORDER BY year, month, day, hour, minute, hall_id LIMIT 25").fetchall()
-    if len(sessions) != 0:
-        sess = '\nБлижайшие сеансы:\n' + \
-               '\n'.join([f"{i + 1}) {':'.join(str(j).rjust(2, '0') for j in sessions[i][5:7])}"
-                          f", {'.'.join(str(j).rjust(2, '0') for j in sessions[i][4:1:-1])} "
-                          f", Зал №{sessions[i][7]}" for i in range(len(sessions))])
+@bot.message_handler(commands=['start'])
+def start_message(message: types.Message):
+    commands = '\n'.join([f'/{key} - {value}' for key, value in COMMANDS.items()])
+    bot.send_message(message.chat.id, "Привет ✌️ \n"
+                                      "Я FilmBot, ты можешь посмотреть сеансы фильмов и свободные места, "
+                                      "а также заказать билеты. Ещё можно написать мне название фильма или жанра.\n"
+                                      f"Мои команды:\n"
+                                      f"{commands}",
+                     reply_markup=types.ReplyKeyboardRemove())
+
+
+def show_film_info(message: types.Message, title: str):
+    markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+
+    film_id = cur.execute("SELECT film_id FROM Films WHERE title = ?", (title,)).fetchone()[0]
+    info = dict(
+        zip(FSW_FILMS_TABLE_TITLES, cur.execute(f"SELECT * FROM Films WHERE film_id = ?", (film_id,)).fetchone()))
+
+    dates = cur.execute("SELECT year, month, day FROM Sessions WHERE film_id = ?", (film_id,)).fetchall()
+    dates = sorted(set(filter(lambda j: datetime.now().date() <= j, map(lambda i: date(*i), dates))))
+    if not dates:
+        bot.send_message(message.chat.id, 'К сожалению, в данный момент нет сеансов на этот фильм.')
+        return
+
+    hours_dur, minutes_dur = divmod(info['duration'], 60)
+    if hours_dur > 0 and minutes_dur > 0:
+        duration = f'{hours_dur}ч. {minutes_dur}мин.'
+    elif hours_dur > 0 and minutes_dur == 0:
+        duration = f'{hours_dur}ч.'
     else:
-        sess = '\nПока что нет ближайших сеансов'
+        duration = f'{minutes_dur}мин.'
 
-    img = open(f'{res[7]}', 'rb')
-    text = f"*{res[1]}*\nСтрана: {res[2]}\nВозрастной рейтинг: {res[3]}+\nДлительность: {res[4]} минут\n" + \
-           ''.join([i for i in open(res[6]).readlines()]) + sess
-    tg_info = cur.execute(f'SELECT * FROM Telegram WHERE id = "{message.chat.id}"').fetchall()
+    with open(info['description_file_name']) as desc_file:
+        description = desc_file.read()
 
-    if len(tg_info) == 0:
-        cur.execute(f"INSERT INTO Telegram VALUES('{message.chat.id}', '{name}', {0})")
-        db.commit()
+    str_dates = '\n'.join(map(lambda i: f"{i[0] + 1}) {i[1].strftime(DATE_FORMAT)}", enumerate(dates)))
+
+    text = f"<b>{info['title']}</b>\n" \
+           f"<u>Страна</u>: {info['country']}\n" \
+           f"<u>Возрастной рейтинг</u>: {info['rating']}+\n" \
+           f"<u>Длительность</u>: {duration}\n" \
+           f"\t{description}\n" \
+           f"Дни показа:\n" \
+           f"{str_dates}"
+
+    last_i = 0
+    for i in range(2, len(dates) // 2 * 2, 2):
+        markup.add(*map(lambda j: types.KeyboardButton(text=j.strftime(DATE_FORMAT)), dates[last_i:i]))
+        last_i = i
+    if len(dates) % 2:
+        markup.add(types.KeyboardButton(text=dates[-1].strftime(DATE_FORMAT)))
+
+    tg_info = cur.execute(f'SELECT * FROM Telegram WHERE id = ?', (message.chat.id,)).fetchall()
+
+    if not tg_info:
+        cur.execute(f"INSERT INTO Telegram VALUES(?, ?, ?)", (message.chat.id, film_id, 0))
     else:
-        cur.execute(f"UPDATE Telegram SET film = '{name}' WHERE id = '{message.chat.id}'")
-        db.commit()
+        cur.execute(f"UPDATE Telegram SET film_id = ? WHERE id = ?", (film_id, message.chat.id))
+    db.commit()
 
-    bot.send_photo(message.chat.id, img)
-    bot.send_message(message.chat.id, text, reply_markup=markup, parse_mode='Markdown')
+    with open(info['image_path'], 'rb') as desc_file:
+        new_message = bot.send_photo(message.chat.id, desc_file, caption=text, parse_mode='HTML', reply_markup=markup)
+    # bot.register_next_step_handler(new_message, pass)
 
 
 def choose_seat():
     print('ok')
 
 
-@bot.message_handler(commands=['start'])
-def start_message(message):
-    commands = '\n'.join([f'/{i} - {COMMANDS[i]}' for i in COMMANDS])
-    bot.send_message(message.chat.id, "Привет ✌️ \n"
-                                      "Я FilmBot, ты можешь посмотреть сеансы фильмов и свободные места, "
-                                      "а также заказать билеты. Ещё можно написать мне название фильма или жанра.\n"
-                                      f"Мои команды:\n"
-                                      f"{commands}")
-
-
 @bot.message_handler(commands=['random'])
-def random_film(message):
+def random_film(message: types.Message):
     films = cur.execute("""SELECT DISTINCT Films.title, Films.film_id FROM Films 
         INNER JOIN Sessions ON Films.film_id = Sessions.film_id""").fetchall()
     film = sample(films, 1)
@@ -67,21 +94,24 @@ def random_film(message):
 
 
 @bot.message_handler(commands=['films'])
-def avaible_films(message):
-    markup = types.ReplyKeyboardMarkup(row_width=1)
+def avaible_films(message: types.Message):
+    markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
     films = cur.execute("""SELECT title, duration, rating FROM Films""").fetchall()
-    if len(films) == 0:
+
+    if not films:
         text = "К сожалению, у нас пока что нет доступных фильмов"
     else:
-        text = "Вот список доступных фильмов:\n" + \
-               "\n".join([f"{i + 1}) {films[i][0]} ({films[i][1]} минут, {films[i][2]}+)" for i in range(len(films))])
+        text = f"Вот список доступных фильмов:\n" + \
+               "\n".join([
+                   f'{i + 1}) {info[0]} ({info[1]} минут, {info[2]}+)' for i, info in enumerate(films)
+               ])
         for film in films:
             markup.add(types.KeyboardButton(film[0]))
     bot.send_message(message.chat.id, text, reply_markup=markup)
 
 
 @bot.message_handler(func=lambda message: message.text == 'Заказать билеты')
-def order_ticket(message):
+def order_ticket(message: types.Message):
     info = cur.execute(f"SELECT * FROM Telegram WHERE id = '{message.chat.id}'").fetchall()
     if len(info) == 0:
         bot.send_message(message.chat.id, "Вы не выбрали фильм и сеанс!", reply_markup=types.ReplyKeyboardRemove())
@@ -103,7 +133,7 @@ def order_ticket(message):
 
 
 @bot.message_handler(content_types='text')
-def search_films(message):
+def search_films(message: types.Message):
     if message.text.isdigit():
         try:
             number = int(message.text)

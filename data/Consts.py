@@ -29,6 +29,9 @@ ERROR_COLOR = '#ff5133'
 OCCUPIED_COLOR = '#aa0000'
 ORDER_COLOR = '#ffe666'
 
+# _______FORMATS_______
+DATE_FORMAT = '%d.%m.%Y'
+
 # ___________SIZES____________
 IMAGE_SIZE = (IMAGE_WIDTH, IMAGE_HEIGHT) = (280, 400)
 
@@ -105,6 +108,14 @@ TRANSCRIPTION = {'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e
                  'v': 'v', 'w': 'w', 'x': 'x', 'y': 'y', 'z': 'z', '0': '0', '1': '1', '2': '2', '3': '3',
                  '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9'}
 
+db = sql.connect(PROJECT_DATABASE)
+cur = db.cursor()
+
+GENRES_DICT = dict(cur.execute("SELECT * FROM Genres").fetchall())
+
+db.close()
+del db
+del cur
 
 # Telegram
 COMMANDS = {
@@ -112,9 +123,3 @@ COMMANDS = {
     'random': 'Показать случайный фильм'
 }
 
-db = sql.connect(PROJECT_DATABASE)
-cur = db.cursor()
-
-GENRES_DICT = dict(cur.execute("SELECT * FROM Genres").fetchall())
-
-db.close()
