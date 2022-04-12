@@ -309,6 +309,7 @@ class AdminWindow(QTabWidget):
         """
         Удаление выбранного сеанса, выбранного в таблице
         """
+
         table = getattr(self, f'SessionsTableTab{tab}')
         sessions = getattr(self, f'film_info_tab{tab}')['sessions']
         selected_date = getattr(self, f'selected_date_tab{tab}')
@@ -316,6 +317,8 @@ class AdminWindow(QTabWidget):
         ind = table.currentRow()
         if ind == -1:
             return
+
+        del sessions[selected_date][ind]
 
         if not sessions[selected_date]:
             del sessions[selected_date]

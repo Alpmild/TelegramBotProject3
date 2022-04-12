@@ -11,16 +11,16 @@ class DirectorSetupDialog(QDialog):
 
     def __init__(self, parent, tab: int, index=-1, name='', surname=''):
         super().__init__()
-        print([index, name, surname])
+        print('DirectorSetupDialog', [index, name, surname])
 
         self.parent = parent
         self.tab = tab
         self.index = index
         self.director_info = (name, surname)
 
-        self.error_messages = ['В имени должны быть только буквы',
+        self.error_messages = ('В имени должны быть только буквы',
                                'В фамилии должны быть только буквы',
-                               'Корректно заполните данные']
+                               'Корректно заполните данные')
 
         uic.loadUi(DSD_INTERFACE, self)
         self.lines = (self.NameLine, self.SurnameLine)

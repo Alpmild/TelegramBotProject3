@@ -12,7 +12,7 @@ token = get_token('token.txt')
 bot = telebot.TeleBot(token)
 
 
-def show_film_info(message, name):
+def show_film_info(message: types.Message, name):
     markup = types.ReplyKeyboardMarkup(row_width=1)
     markup.add('Заказать билеты')
     res = cur.execute(f"SELECT * FROM Films WHERE title='{name}'").fetchall()[0]
@@ -21,15 +21,17 @@ def show_film_info(message, name):
                            "ORDER BY year, month, day, hour, minute, hall_id LIMIT 25").fetchall()
     if len(sessions) != 0:
         sess = '\nБлижайшие сеансы:\n' + \
-               '\n'.join([f"{i + 1}) {':'.join(str(j) if len(str(j)) == 2 else '0' + str(j) for j in sessions[i][5:7])}"
-                          f", {'.'.join(str(j) if len(str(j)) >= 2 else '0' + str(j) for j in sessions[i][4:1:-1])} "
+               '\n'.join([f"{i + 1}) {':'.join(str(j).rjust(2, '0') for j in sessions[i][5:7])}"
+                          f", {'.'.join(str(j).rjust(2, '0') for j in sessions[i][4:1:-1])} "
                           f", Зал №{sessions[i][7]}" for i in range(len(sessions))])
     else:
         sess = '\nПока что нет ближайших сеансов'
+
     img = open(f'{res[7]}', 'rb')
     text = f"*{res[1]}*\nСтрана: {res[2]}\nВозрастной рейтинг: {res[3]}+\nДлительность: {res[4]} минут\n" + \
            ''.join([i for i in open(res[6]).readlines()]) + sess
     tg_info = cur.execute(f'SELECT * FROM Telegram WHERE id = "{message.chat.id}"').fetchall()
+
     if len(tg_info) == 0:
         cur.execute(f"INSERT INTO Telegram VALUES('{message.chat.id}', '{name}', {0})")
         db.commit()
@@ -48,9 +50,11 @@ def choose_seat():
 @bot.message_handler(commands=['start'])
 def start_message(message):
     commands = '\n'.join([f'/{i} - {COMMANDS[i]}' for i in COMMANDS])
-    bot.send_message(message.chat.id, "Привет ✌️ \nЯ FilmBot, ты можешь посмотреть сеансы фильмов и свободные места, "
-                                      "а также заказать билеты. Ещё можно написать мне название фильма или жанра."
-                                      f"\nМои команды:\n{commands}")
+    bot.send_message(message.chat.id, "Привет ✌️ \n"
+                                      "Я FilmBot, ты можешь посмотреть сеансы фильмов и свободные места, "
+                                      "а также заказать билеты. Ещё можно написать мне название фильма или жанра.\n"
+                                      f"Мои команды:\n"
+                                      f"{commands}")
 
 
 @bot.message_handler(commands=['random'])
@@ -121,18 +125,21 @@ def search_films(message):
     markup = types.ReplyKeyboardMarkup(row_width=1)
     films = cur.execute("""SELECT title, duration, rating FROM Films""").fetchall()
     res = []
+
     for info in films:
         if normalized_text(info[0]) == normalized_text(message.text):
             show_film_info(message, info[0])
             return True
         elif normalized_text(message.text) in normalized_text(info[0]):
             res.append(info)
+
     if len(res) == 0:
         text = 'К сожалению, мы не нашли ничего подходящего'
         markup = types.ReplyKeyboardRemove()
     else:
         text = 'Вот, что мне удалось найти:\n' + \
                "\n".join([f"{i + 1}) {res[i][0]} ({res[i][1]} минут, {res[i][2]}+)" for i in range(len(res))])
+
         for film in res:
             markup.add(types.KeyboardButton(film[0]))
     bot.send_message(message.chat.id, text, reply_markup=markup)
