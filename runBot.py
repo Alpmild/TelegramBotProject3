@@ -13,6 +13,7 @@ bot = telebot.TeleBot(token)
 
 
 def show_film_info(message: types.Message, name):
+    """Показ информации о фильме и его сеансы"""
     markup = types.ReplyKeyboardMarkup(row_width=1)
     markup.add('Заказать билеты')
     res = cur.execute(f"SELECT * FROM Films WHERE title='{name}'").fetchall()[0]
@@ -49,6 +50,7 @@ def choose_seat():
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
+    """Стартовая команда"""
     commands = '\n'.join([f'/{i} - {COMMANDS[i]}' for i in COMMANDS])
     bot.send_message(message.chat.id, "Привет ✌️ \n"
                                       "Я FilmBot, ты можешь посмотреть сеансы фильмов и свободные места, "
@@ -59,6 +61,7 @@ def start_message(message):
 
 @bot.message_handler(commands=['random'])
 def random_film(message):
+    """Показ рандомного фильма и сеансов к нему"""
     films = cur.execute("""SELECT DISTINCT Films.title, Films.film_id FROM Films 
         INNER JOIN Sessions ON Films.film_id = Sessions.film_id""").fetchall()
     film = sample(films, 1)
@@ -68,6 +71,7 @@ def random_film(message):
 
 @bot.message_handler(commands=['films'])
 def avaible_films(message):
+    """Показ доступных фильмов"""
     markup = types.ReplyKeyboardMarkup(row_width=1)
     films = cur.execute("""SELECT title, duration, rating FROM Films""").fetchall()
     if len(films) == 0:
@@ -82,6 +86,7 @@ def avaible_films(message):
 
 @bot.message_handler(func=lambda message: message.text == 'Заказать билеты')
 def order_ticket(message):
+    """Команда, переносящая к выбору сеанса"""
     info = cur.execute(f"SELECT * FROM Telegram WHERE id = '{message.chat.id}'").fetchall()
     if len(info) == 0:
         bot.send_message(message.chat.id, "Вы не выбрали фильм и сеанс!", reply_markup=types.ReplyKeyboardRemove())
@@ -104,6 +109,10 @@ def order_ticket(message):
 
 @bot.message_handler(content_types='text')
 def search_films(message):
+    """Хэндлер всех сообщений
+        В начале идёт проверка на число, и если это число, то дальше идёт выбор мест на определённом сеансе
+        Иначе идёт поиск фильма в базе данных
+    """
     if message.text.isdigit():
         try:
             number = int(message.text)
