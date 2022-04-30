@@ -1,4 +1,9 @@
-from data.Consts import TRANSCRIPTION
+from data.Consts import TRANSCRIPTION, PROJECT_DATABASE
+import sqlite3 as sql
+from datetime import datetime
+
+db = sql.connect(PROJECT_DATABASE)
+cur = db.cursor()
 
 
 def transcription_title_into_english(name: str):

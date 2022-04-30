@@ -3,6 +3,10 @@ from PyQt5.QtWidgets import QHeaderView
 
 from datetime import datetime, timedelta
 
+# _______WORDS________
+BACK_WORD = 'Назад'
+HALL_WORD = 'зал'
+
 
 # _______FILES________
 INTERFACES_FOLDER = 'Interfaces'
@@ -31,6 +35,8 @@ ORDER_COLOR = '#ffe666'
 
 # _______FORMATS_______
 DATE_FORMAT = '%d.%m.%Y'
+TIME_FORMAT = '%H:%M'
+SESSION_FORMAT = '{time} Зал {hall}'
 
 # ___________SIZES____________
 IMAGE_SIZE = (IMAGE_WIDTH, IMAGE_HEIGHT) = (280, 400)
@@ -70,6 +76,8 @@ FSW_DIRECTORS_TABLE_COLS_COUNT = 2
 FSW_SESSIONS_TABLE_COLS_COUNT = 4
 
 UW_FILMS_TABLE_COLS_COUNT = 5
+
+FILMS_KEYBOARD_WIDTH = 3
 
 # ___________TITLES___________
 AW_GENRES_TABLE_COLS_TITLES = ["genre_id", "Жанр"]
@@ -120,6 +128,7 @@ del cur
 # Telegram
 COMMANDS = {
     'films': 'Показать полный список доступных фильмов',
-    'random': 'Показать случайный фильм'
+    'random': 'Показать случайный фильм',
+    'search': 'Поиск фильма по названию'
 }
 
