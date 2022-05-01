@@ -4,6 +4,7 @@ from telebot import types
 import sqlite3 as sql
 from random import sample
 from datetime import datetime, date
+# from PIL import Image, ImageDraw
 
 from data.Secondary_functions import get_token, normalized_text
 from data.Consts import PROJECT_DATABASE, COMMANDS, FSW_FILMS_TABLE_TITLES, DATE_FORMAT
@@ -26,18 +27,16 @@ def start_message(message: types.Message):
                      reply_markup=types.ReplyKeyboardRemove())
 
 
-def show_film_info(message: types.Message, title: str):
+def show_film_info(message: types.Message, film_id: int):
     markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 
-    film_id = cur.execute("SELECT film_id FROM Films WHERE title = ?", (title,)).fetchone()[0]
     info = dict(
         zip(FSW_FILMS_TABLE_TITLES, cur.execute(f"SELECT * FROM Films WHERE film_id = ?", (film_id,)).fetchone()))
 
     dates = cur.execute("SELECT year, month, day FROM Sessions WHERE film_id = ?", (film_id,)).fetchall()
     dates = sorted(set(filter(lambda j: datetime.now().date() <= j, map(lambda i: date(*i), dates))))
     if not dates:
-        bot.send_message(message.chat.id, 'К сожалению, в данный момент нет сеансов на этот фильм.')
-        return
+        return bot.send_message(message.chat.id, 'К сожалению, в данный момент нет сеансов на этот фильм.')
 
     hours_dur, minutes_dur = divmod(info['duration'], 60)
     if hours_dur > 0 and minutes_dur > 0:
@@ -47,8 +46,11 @@ def show_film_info(message: types.Message, title: str):
     else:
         duration = f'{minutes_dur}мин.'
 
-    with open(info['description_file_name']) as desc_file:
-        description = desc_file.read()
+    try:
+        with open(info['description_file_name']) as desc_file:
+            description = desc_file.read()
+    except FileNotFoundError:
+        description = 'None'
 
     str_dates = '\n'.join(map(lambda i: f"{i[0] + 1}) {i[1].strftime(DATE_FORMAT)}", enumerate(dates)))
 
@@ -75,8 +77,12 @@ def show_film_info(message: types.Message, title: str):
         cur.execute(f"UPDATE Telegram SET film_id = ? WHERE id = ?", (film_id, message.chat.id))
     db.commit()
 
-    with open(info['image_path'], 'rb') as desc_file:
-        new_message = bot.send_photo(message.chat.id, desc_file, caption=text, parse_mode='HTML', reply_markup=markup)
+    try:
+        with open(info['image_path'], 'rb') as desc_file:
+            new_message = bot.send_photo(
+                message.chat.id, desc_file, caption=text, parse_mode='HTML', reply_markup=markup)
+    except FileNotFoundError:
+        new_message = bot.send_message(message.chat.id, text=text, parse_mode='HTML', reply_markup=markup)
     # bot.register_next_step_handler(new_message, pass)
 
 
@@ -90,7 +96,7 @@ def random_film(message: types.Message):
         INNER JOIN Sessions ON Films.film_id = Sessions.film_id""").fetchall()
     film = sample(films, 1)
     bot.send_dice(message.chat.id)
-    show_film_info(message, film[0][0])
+    show_film_info(message, film[0][1])
 
 
 @bot.message_handler(commands=['films'])
@@ -137,39 +143,38 @@ def search_films(message: types.Message):
     if message.text.isdigit():
         try:
             number = int(message.text)
-            res = cur.execute(f"SELECT * FROM Telegram WHERE id = '{message.chat.id}'").fetchall()
-            if len(res) == 0:
+            res = cur.execute(f"SELECT * FROM Telegram WHERE id = ?", (message.chat.id,)).fetchall()
+            if not res:
                 return bot.send_message(message.chat.id, "Вы не выбрали фильм, чтобы называть номер сеанса")
             elif res[0][1] is None:
                 return bot.send_message(message.chat.id, "Вы не выбрали фильм, чтобы называть номер сеанса")
             else:
                 sessions = cur.execute("SELECT * FROM Sessions WHERE film_id = "
-                                       f"(SELECT film_id FROM Films WHERE title = '{res[0][1]}') "
-                                       "ORDER BY year, month, day, hour, minute, hall_id").fetchall()
+                                       f"(SELECT film_id FROM Films WHERE title = ?) "
+                                       "ORDER BY year, month, day, hour, minute, hall_id", (res[0][1],)).fetchall()
                 if number <= 0 or number > len(sessions):
                     return bot.send_message(message.chat.id, "Пожалуйста, введите корректный номер")
                 return choose_seat()
         except Exception as e:
             return bot.send_message(message.chat.id, "Отправьте, пожалуйста, корректный номер")
 
-    markup = types.ReplyKeyboardMarkup(row_width=1)
-    films = cur.execute("""SELECT title, duration, rating FROM Films""").fetchall()
+    markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    films = cur.execute("""SELECT film_id, title, duration, rating FROM Films""").fetchall()
     res = []
 
     for info in films:
-        if normalized_text(info[0]) == normalized_text(message.text):
+        if normalized_text(info[1]) == normalized_text(message.text):
             show_film_info(message, info[0])
             return True
-        elif normalized_text(message.text) in normalized_text(info[0]):
+        elif normalized_text(message.text) in normalized_text(info[1]):
             res.append(info)
 
-    if len(res) == 0:
+    if not res:
         text = 'К сожалению, мы не нашли ничего подходящего'
         markup = types.ReplyKeyboardRemove()
     else:
-        text = 'Вот, что мне удалось найти:\n' + \
-               "\n".join([f"{i + 1}) {res[i][0]} ({res[i][1]} минут, {res[i][2]}+)" for i in range(len(res))])
-
+        text = 'Вот, что мне удалось найти:\n' + '\n'.join(map(lambda i: f"{i + 1}) ({res[i][2]} минут, {res[i][3]}+)",
+                                                               range(len(res))))
         for film in res:
             markup.add(types.KeyboardButton(film[0]))
     bot.send_message(message.chat.id, text, reply_markup=markup)

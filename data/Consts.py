@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 # _______WORDS________
 BACK_WORD = 'Назад'
-HALL_WORD = 'зал'
+# HALL_WORD = 'зал'
 
 
 # _______FILES________
@@ -22,36 +22,27 @@ TD_INTERFACE = f'{INTERFACES_FOLDER}\\TabDialog.ui'
 UW_INTERFACE = f'{INTERFACES_FOLDER}\\UserWindow.ui'
 
 DATABASES_FOLDER = 'DataBases'
-
 PROJECT_DATABASE = f'{DATABASES_FOLDER}\\DataBase.sqlite'
+
+FONTS_FOLDER = 'fonts'
+ARIAL = f'{FONTS_FOLDER}\\arial.ttf'
+ARIALMT = f'{FONTS_FOLDER}\\arialmt.ttf'
 
 # ___________COLORS___________
 NORMAL_LINE_COLOR = '#ffffff'
 NORMAL_WINDOW_COLOR = '#f0f0f0'
 ERROR_COLOR = '#ff5133'
-
 OCCUPIED_COLOR = '#aa0000'
 ORDER_COLOR = '#ffe666'
+HALL_BACK_COLOR = '#ffffff'
+LINE_COLOR = '#000000'
+FONT_COLOR = '#000000'
 
 # _______FORMATS_______
 DATE_FORMAT = '%d.%m.%Y'
 TIME_FORMAT = '%H:%M'
 SESSION_FORMAT = '{time} Зал {hall}'
-
-# ___________SIZES____________
-IMAGE_SIZE = (IMAGE_WIDTH, IMAGE_HEIGHT) = (280, 400)
-
-AW_GENRES_TABLE_COLS_SIZE = (160, QHeaderView.Stretch)
-AW_DIRECTORS_TABLE_COLS_SIZE = (QHeaderView.Stretch, QHeaderView.Stretch)
-AW_SESSIONS_TABLE_COLS_SIZE = (QHeaderView.Stretch, QHeaderView.Stretch)
-
-FSW_FILMS_TABLE_COLS_SIZE = (80, 200, 100, 100, QHeaderView.Stretch, QHeaderView.Stretch,
-                             QHeaderView.Stretch, QHeaderView.Stretch)
-FSW_GENRES_TABLE_COLS_SIZE = (80, QHeaderView.Stretch)
-FSW_DIRECTORS_TABLE_COLS_SIZE = (QHeaderView.Stretch, QHeaderView.Stretch)
-FSW_SESSIONS_TABLE_COLS_SIZE = (80, QHeaderView.Stretch, QHeaderView.Stretch, QHeaderView.Stretch)
-
-UW_FILMS_TABLE_COLS_SIZE = (300, 250, 300, QHeaderView.Stretch, QHeaderView.Stretch)
+PLACE_FORMAT = '{row} {column}'
 
 # __________NUMBERS___________
 MIN_DATE = datetime.now().date()
@@ -77,7 +68,37 @@ FSW_SESSIONS_TABLE_COLS_COUNT = 4
 
 UW_FILMS_TABLE_COLS_COUNT = 5
 
-FILMS_KEYBOARD_WIDTH = 3
+FILMS_KEYBOARD_WIDTH = 1
+
+HALL_ROWS = 8
+HALL_COLUMNS = 10
+
+FONT = 16
+
+# ___________SIZES____________
+IMAGE_SIZE = (IMAGE_WIDTH, IMAGE_HEIGHT) = (280, 400)
+
+AW_GENRES_TABLE_COLS_SIZE = (160, QHeaderView.Stretch)
+AW_DIRECTORS_TABLE_COLS_SIZE = (QHeaderView.Stretch, QHeaderView.Stretch)
+AW_SESSIONS_TABLE_COLS_SIZE = (QHeaderView.Stretch, QHeaderView.Stretch)
+
+FSW_FILMS_TABLE_COLS_SIZE = (80, 200, 100, 100, QHeaderView.Stretch, QHeaderView.Stretch,
+                             QHeaderView.Stretch, QHeaderView.Stretch)
+FSW_GENRES_TABLE_COLS_SIZE = (80, QHeaderView.Stretch)
+FSW_DIRECTORS_TABLE_COLS_SIZE = (QHeaderView.Stretch, QHeaderView.Stretch)
+FSW_SESSIONS_TABLE_COLS_SIZE = (80, QHeaderView.Stretch, QHeaderView.Stretch, QHeaderView.Stretch)
+
+UW_FILMS_TABLE_COLS_SIZE = (300, 250, 300, QHeaderView.Stretch, QHeaderView.Stretch)
+
+PLACE_SIZE = (PLACE_WIDTH, PLACE_HEIGHT) = (50, 50)
+LEN_BTWN_PLACES = 10
+
+HALL_IMAGE_SIZE = (HALL_IMAGE_WIDTH, HALL_IMAGE_HEIGHT) = \
+    (PLACE_WIDTH + LEN_BTWN_PLACES) * (HALL_COLUMNS + 1), (PLACE_HEIGHT + LEN_BTWN_PLACES) * (HALL_ROWS + 1)
+
+LINE_WIDTH = 1
+
+FONT_SIZE = 32
 
 # ___________TITLES___________
 AW_GENRES_TABLE_COLS_TITLES = ["genre_id", "Жанр"]
@@ -132,3 +153,4 @@ COMMANDS = {
     'search': 'Поиск фильма по названию'
 }
 
+RESIZE_MODE = True

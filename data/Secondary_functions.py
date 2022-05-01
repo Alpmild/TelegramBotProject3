@@ -1,6 +1,5 @@
 from data.Consts import TRANSCRIPTION, PROJECT_DATABASE
 import sqlite3 as sql
-from datetime import datetime
 
 db = sql.connect(PROJECT_DATABASE)
 cur = db.cursor()
@@ -31,3 +30,19 @@ def get_token(path: str):
 def normalized_text(text: str):
     """Нормализация текста, т.е. перевод в нижний регистр и удаление знаков препинания используется для поиска"""
     return ''.join([i.lower() for i in text if i.isalpha()])
+
+
+def make_dict_from_string(string: str, form: str):
+    d = dict()
+    form, string = form.split(), string.split()
+    if len(form) != len(string):
+        raise ValueError('Строка не соответствует формату.')
+
+    for i in range(len(form)):
+        if form[i].startswith('{') and form[i].endswith('}'):
+            d[form[i][1:-1]] = string[i]
+        else:
+            if form[i].lower() != string[i].lower():
+                raise ValueError('Строка не соответствует формату.')
+
+    return d
