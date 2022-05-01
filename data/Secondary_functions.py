@@ -5,7 +5,7 @@ db = sql.connect(PROJECT_DATABASE)
 cur = db.cursor()
 
 
-def transcription_title_into_english(name: str):
+def transcription_title_into_english(name: str) -> str:
     """Перевод русских слов на английскую транскрипцию для удобного хранения"""
     name = name.strip()
     eng_name = ''
@@ -21,18 +21,18 @@ def transcription_title_into_english(name: str):
     return eng_name
 
 
-def get_token(path: str):
+def get_token(path: str) -> str:
     """Получение токена"""
     with open(path, 'r') as token_file:
         return token_file.readline()
 
 
-def normalized_text(text: str):
+def normalized_text(text: str) -> str:
     """Нормализация текста, т.е. перевод в нижний регистр и удаление знаков препинания используется для поиска"""
     return ''.join([i.lower() for i in text if i.isalpha()])
 
 
-def make_dict_from_string(string: str, form: str):
+def make_dict_from_string(string: str, form: str) -> dict:
     d = dict()
     form, string = form.split(), string.split()
     if len(form) != len(string):

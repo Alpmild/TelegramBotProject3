@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 
 # _______WORDS________
 BACK_WORD = 'Назад'
-# HALL_WORD = 'зал'
-
+CANCEL_WORD = 'Отмена'
+BUY_WORD = 'Купить'
 
 # _______FILES________
 INTERFACES_FOLDER = 'Interfaces'
@@ -41,8 +41,14 @@ FONT_COLOR = '#000000'
 # _______FORMATS_______
 DATE_FORMAT = '%d.%m.%Y'
 TIME_FORMAT = '%H:%M'
+
 SESSION_FORMAT = '{time} Зал {hall}'
-PLACE_FORMAT = '{row} {column}'
+ADD_PLACE_FORMAT = '/add {row} {column}'
+CHANGED_PLACE_FORMAT = '/change {index} {row} {column}'
+DELETE_PLACE_FORMAT = '/delete {index}'
+
+CARD_INFO_FORMAT = '{number} {cvv} {date}'
+CARD_DATE_FORMAT = '%m/%y'
 
 # __________NUMBERS___________
 MIN_DATE = datetime.now().date()
@@ -55,7 +61,7 @@ MAX_DIRECTORS = 6
 MAX_SESSIONS = 8
 MAX_AGE_RATING = 18
 MAX_DURATION = 400
-MAX_BUY_PLACES = 4
+MAX_BUY_PLACES = 3
 
 AW_GENRES_TABLE_COLS_COUNT = 2
 AW_DIRECTORS_TABLE_COLS_COUNT = 2
@@ -69,11 +75,13 @@ FSW_SESSIONS_TABLE_COLS_COUNT = 4
 UW_FILMS_TABLE_COLS_COUNT = 5
 
 FILMS_KEYBOARD_WIDTH = 1
-
 HALL_ROWS = 8
 HALL_COLUMNS = 10
-
 FONT = 16
+TICKET_PRICE = 180
+
+LEN_CARD_NUMBER = 16
+LEN_CVV = 3
 
 # ___________SIZES____________
 IMAGE_SIZE = (IMAGE_WIDTH, IMAGE_HEIGHT) = (280, 400)
@@ -97,7 +105,6 @@ HALL_IMAGE_SIZE = (HALL_IMAGE_WIDTH, HALL_IMAGE_HEIGHT) = \
     (PLACE_WIDTH + LEN_BTWN_PLACES) * (HALL_COLUMNS + 1), (PLACE_HEIGHT + LEN_BTWN_PLACES) * (HALL_ROWS + 1)
 
 LINE_WIDTH = 1
-
 FONT_SIZE = 32
 
 # ___________TITLES___________
