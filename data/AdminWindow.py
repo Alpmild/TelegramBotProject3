@@ -533,8 +533,7 @@ class AdminWindow(QTabWidget):
 
             # Сохранение постера фильма
             image = Image.open(image_path)
-            new_image = image.resize((IMAGE_WIDTH, IMAGE_HEIGHT))
-            new_image.save(image_name)
+            image.save(image_name)
 
             # Запись информации в бд
             self.projectDB_cur.execute(
@@ -586,8 +585,7 @@ class AdminWindow(QTabWidget):
                     os.remove(last_image_path)
 
                 image = Image.open(image_path)
-                new_image = image.resize((IMAGE_WIDTH, IMAGE_HEIGHT))
-                new_image.save(f'Films\\{last_file_folder_name}\\{file_folder_name}Image.png')
+                image.save(f'Films\\{last_file_folder_name}\\{file_folder_name}Image.png')
 
             # Переименование старой папки
             os.rename(f'Films\\{last_file_folder_name}', f'Films\\{file_folder_name}')

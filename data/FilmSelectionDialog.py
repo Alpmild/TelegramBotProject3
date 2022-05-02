@@ -46,13 +46,16 @@ class FilmSelectionDialog(QDialog):
                 if date_ >= MIN_DATE:
                     if date_ not in sessions_dict:
                         sessions_dict[date_] = []
-                    if session_id not in Tickets:
+                    if session_id not in tickets:
                         sessions_dict[date_].append((session_id, time_, hall))
                         del_sessions.append(session_id)
 
-            for date_ in sessions_dict:
-                if not sessions_dict[date_]:
-                    del sessions_dict[date_]
+            keys = tuple(sessions_dict.keys())
+            n = 0
+            while n < len(keys):
+                if not sessions_dict[keys[n]]:
+                    del sessions_dict[keys[n]]
+                n += 1
 
             dict_['genres'], dict_['directors'], dict_['sessions'], dict_["del_sessions"] = \
                 (film_genres, film_directors, sessions_dict, del_sessions)

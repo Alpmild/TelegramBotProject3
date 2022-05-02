@@ -135,6 +135,14 @@ def get_purchased_history(message: Message):
     start_message(new_message, False)
 
 
+@bot.message_handler(commands=['authors'])
+def send_authors(message: Message):
+    new_message = bot.send_message(message.chat.id, f'Петров Дмитрий https://vk.com/yeah_metal\n'
+                                                    f'Иванов Григорий https://vk.com/jsprogrammist')
+
+    start_message(new_message, False)
+
+
 @bot.message_handler(commands=['films'])
 def available_films(message: Message) -> Message:
     """Показ фильмов, для которых возможно купить билет"""
