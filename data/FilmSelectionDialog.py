@@ -46,7 +46,7 @@ class FilmSelectionDialog(QDialog):
                 if date_ >= MIN_DATE:
                     if date_ not in sessions_dict:
                         sessions_dict[date_] = []
-                    if session_id not in tickets:
+                    if session_id not in Tickets:
                         sessions_dict[date_].append((session_id, time_, hall))
                         del_sessions.append(session_id)
 
