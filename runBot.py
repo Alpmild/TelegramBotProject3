@@ -118,7 +118,7 @@ def get_purchased_history(message: Message):
                                        (session_id,)).fetchone()
             session_time = datetime(*session_time)
 
-            text += f"\t{title} Сеанс на " + session_time.strftime(f'{DATE_FORMAT} {TIME_FORMAT}:\n')
+            text += f"\t{title}, Сеанс на " + session_time.strftime(f'{DATE_FORMAT} {TIME_FORMAT}:\n')
 
             n = len(data[time_][session_id])
             ordered_places = '\n'.join(
