@@ -161,3 +161,9 @@ COMMANDS = {
 }
 
 RESIZE_MODE = True
+
+GEOCODE_MAP_URL = 'http://geocode-maps.yandex.ru/1.x/'
+THEATRE_COORS = {'latitude': 56.107532, 'longitude': 47.280463}
+MAP_PARAMS = {'apikey': "40d1649f-0493-4b70-98ba-98533de7710b",
+              'geocode': '',
+              'format': 'json'}
