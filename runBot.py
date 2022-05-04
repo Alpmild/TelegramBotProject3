@@ -596,7 +596,7 @@ def make_qrcode(message: Message, session_id: int, places: list, buy_time: datet
 
     places = '\n'.join([f"{i + 1}. Ряд {p[0] + 1} Место {p[1] + 1}" for i, p in enumerate(places)])
 
-    text = f'user_id: {user_id}' \
+    text = f'user_id: {user_id}\n' \
            f'Время покупки: {buy_time.strftime(f"{DATE_FORMAT} {TIME_FORMAT}")}\n' \
            f'film_id: {film_id}\n' \
            f'Фильм: {title}\n' \
