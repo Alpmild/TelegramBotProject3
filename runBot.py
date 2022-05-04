@@ -71,7 +71,7 @@ def show_theatre(message: Message):
     """Отправка геолокации театра"""
 
     data = MAP_PARAMS.copy()
-    data['geocode'] = ','.join(map(str, tuple(THEATRE_COORS.values())[::-1]))
+    data['geocode'] = f'{THEATRE_COORS["longitude"]},{THEATRE_COORS["latitude"]}'
 
     address = req.get(GEOCODE_MAP_URL, params=data).json()
     address = address['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['metaDataProperty'][
@@ -94,6 +94,10 @@ def get_purchased_history(message: Message):
     result = cur.execute(
         """SELECT session_id, row, column, year, month, day, hour, minute FROM Tickets WHERE user_id = ?""",
         (user_id,)).fetchall()
+
+    if not result:
+        new_message = bot.send_message(message.chat.id, 'Вы еще ничего не покупали')
+        return start_message(new_message, False)
 
     data = dict()
     for i in result:
