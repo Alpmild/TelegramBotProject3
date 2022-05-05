@@ -579,9 +579,8 @@ def buy_tickets(message: Message, session_id: int, ordered_places: list):
     markup = ReplyKeyboardMarkup(row_width=FILMS_KEYBOARD_WIDTH, resize_keyboard=RESIZE_MODE)
     markup.add(KeyboardButton(text=BACK_WORD))
 
-    film_id = cur.execute("""SELECT film_id FROM Sessions WHERE session_id = ?""", (session_id,)).fetchone()[0]
     new_message = bot.send_photo(message.chat.id, qr_code_image, text)
-    bot.register_next_step_handler(new_message, lambda m: answer_waiting(m, film_id))
+    start_message(new_message, False)
 
 
 def make_qrcode(message: Message, session_id: int, places: list, buy_time: datetime):
@@ -619,13 +618,6 @@ def send_places_info(message: Message, session_id: int, ordered_places: list):
     bot.send_photo(message.chat.id, draw_hall(session_id, ordered_places))
     new_message = show_ordered_places(message, ordered_places)
     bot.register_next_step_handler(new_message, lambda m: order_place(m, session_id, ordered_places))
-
-
-def answer_waiting(message: Message, film_id: int):
-    if message.text.lower() == BACK_WORD.lower():
-        return show_film_info(message, film_id)
-
-    bot.register_next_step_handler(message, lambda m: answer_waiting(m, film_id))
 
 
 def check_sessions(film_id: int):
